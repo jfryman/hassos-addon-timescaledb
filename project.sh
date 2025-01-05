@@ -63,7 +63,7 @@ function build() {
         --platform ${PLATFORM} \
         --cache-from type=registry,ref=ghcr.io/expaso/timescaledb:cache \
         --tag ghcr.io/expaso/timescaledb/aarch64:dev \
-        --build-arg BUILD_FROM=ghcr.io/hassio-addons/base/aarch64:16.2.1 \
+        --build-arg BUILD_FROM=ghcr.io/hassio-addons/base/aarch64:17.0.1 \
         --progress plain \
         --build-arg CACHE_BUST="$(date +%s)" \
         --output "${output}" \
@@ -80,7 +80,7 @@ function build() {
 
 function run_hassos() {
     # Run the docker image on hassos
-    printInColor "Pulling and restaring on HASOS.. "
+    printInColor "Pulling and restarring on HASSOS.. "
 
     # # Copy the docker image to hassos
     # printInColor "Pulling docker image on hassos.." "yellow"
@@ -169,11 +169,24 @@ if [ "$1" == "build" ]; then
     exit 0
 
 elif [ "$1" == "build-dependencies" ]; then
-    # build_dependency timescaledb-tools "latest"
-    # build_dependency pgagent-pg16 "4.2.2"
-    # build_dependency timescaledb-toolkit-pg16 "1.18.0"
-    # build_dependency postgis-pg15 "3.4.2"
-    build_dependency postgresql-extension-system-stat-pg16 "3.2"
+
+    # If the second argument is not set, then build all dependencies
+    # Otherwise, only build the given dependency
+    if [ -z "$2" ]; then
+        printInColor "Building all dependencies.."
+
+        build_dependency timescaledb-tools "latest"
+        build_dependency pgagent-pg16 "REL-4_2_2"
+        build_dependency pgagent-pg17 "REL-4_2_2"
+        build_dependency timescaledb-toolkit-pg16 "1.19.0"
+        build_dependency timescaledb-toolkit-pg17 "1.19.0"
+        build_dependency postgis-pg15 "3.4.2"
+        build_dependency postgresql-extension-system-stat-pg16 "3.2"
+        build_dependency postgresql-extension-system-stat-pg17 "3.2"
+    else
+        printInColor "Building dependency $2.."
+        build_dependency "$2" "$3"
+    fi
     exit 0
 
 elif [ "$1" == "build-buildx" ]; then
