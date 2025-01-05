@@ -1,8 +1,9 @@
-FROM timescale/timescaledb:2.16.1-pg16 as timescale-pg16
+FROM timescale/timescaledb:2.17.2-pg17 AS timescale-pg17
 
-FROM timescale-pg16 AS timescaledb-toolkit
-ARG VERSION=1.18.0
+FROM timescale-pg17 AS timescaledb-toolkit
+ARG VERSION=1.19.0
 ARG TARGETARCH
+ARG TARGETVARIANT
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     --mount=type=cache,id=cargo-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/root/.cargo \
     set -ex \
@@ -22,11 +23,11 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
                         make \
                         cmake \
                         build-base \
-            && apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.19/main/ \
+            && apk add --repository http://dl-cdn.alpinelinux.org/alpine/v3.21/main/ \
                         rust \
                         cargo \
             && export PATH="/root/.cargo/bin:${PATH}" \
-            && cargo install --version '=0.10.2' --force cargo-pgrx \
+            && cargo install --version '=0.12.8' --force cargo-pgrx \
             && cargo install rustfmt; \
        fi
 
@@ -49,9 +50,9 @@ RUN --mount=type=cache,id=pgrx-${TARGETARCH}-${TARGETVARIANT},sharing=locked,tar
             && git checkout ${VERSION} \
             && cd extension \
             # initdb fails as root so generate the correct config ourselves
-            # && cargo pgx init --pg16 /usr/lib/postgresql/14/bin/pg_config        
+            # && cargo pgx init --pg17 /usr/lib/postgresql/17/bin/pg_config        
             && mkdir -p /root/.pgrx \
-            && printf '[configs]\npg16="/usr/local/bin/pg_config"\n' > /root/.pgrx/config.toml \
+            && printf '[configs]\npg17="/usr/local/bin/pg_config"\n' > /root/.pgrx/config.toml \
             && cargo pgrx install --release \
             && cargo run --manifest-path ../tools/post-install/Cargo.toml -- /usr/local/bin/pg_config \
         && cd ~ \
