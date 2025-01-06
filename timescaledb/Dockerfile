@@ -10,15 +10,16 @@ ARG ALPINE_VERSION=3.21
 FROM timescale/timescaledb:2.17.2-pg15                                      AS timescale-pg15
 FROM timescale/timescaledb:2.17.2-pg16                                      AS timescale-pg16
 FROM timescale/timescaledb:2.17.2-pg17                                      AS timescale-pg17
-
 # hadolint ignore=DL3007
 FROM ghcr.io/expaso/timescaledb/timescaledb-tools:latest                    AS timescaledb-tools
-FROM ghcr.io/expaso/timescaledb/pgagent-pg16:REL_4_2_2                      AS pgagent-pg16
-FROM ghcr.io/expaso/timescaledb/pgagent-pg17:REL_4_2_2                      AS pgagent-pg17
+FROM ghcr.io/expaso/timescaledb/pgagent-pg16:REL-4_2_2                      AS pgagent-pg16
+FROM ghcr.io/expaso/timescaledb/pgagent-pg17:REL-4_2_2                      AS pgagent-pg17
 FROM ghcr.io/expaso/timescaledb/postgis-pg15:3.5.1                          AS postgis-pg15
 FROM ghcr.io/expaso/timescaledb/postgis-pg16:3.5.1                          AS postgis-pg16
-FROM ghcr.io/expaso/timescaledb/timescaledb-toolkit-pg16:1.18.0             AS timescaledb-toolkit-pg16
+FROM ghcr.io/expaso/timescaledb/timescaledb-toolkit-pg16:1.19.0             AS timescaledb-toolkit-pg16
 FROM ghcr.io/expaso/timescaledb/timescaledb-toolkit-pg17:1.19.0             AS timescaledb-toolkit-pg17
+FROM ghcr.io/expaso/timescaledb/postgresql-extension-system-stat-pg16:3.2   AS system-stat-pg16
+FROM ghcr.io/expaso/timescaledb/postgresql-extension-system-stat-pg17:3.2   AS system-stat-pg17
 
 ###########################################
 # Define base Image
@@ -101,7 +102,7 @@ RUN mkdir -p /run/postgresql \
 	&& chown -R postgres:postgres /run/postgresql/extensions
 
 # -----------------------------------------
-# Postgis pg-15 (old)
+# Extension Postgis pg-15 (old)
 # -----------------------------------------
 
 # Postgis + Postgis-Raster
@@ -114,7 +115,7 @@ COPY --from=postgis-pg15 --link /usr/local/share/postgresql/contrib/postgis* /us
 COPY --from=postgis-pg15 --link /usr/local/share/postgresql/extension/postgis* /usr/share/postgresql15/extension/
 
 # -----------------------------------------
-# Postgis pg-16 (old)
+# Extension Postgis pg-16 (old)
 # -----------------------------------------
 
 # Postgis + Postgis-Raster
@@ -127,7 +128,7 @@ COPY --from=postgis-pg16 --link /usr/local/share/postgresql/contrib/postgis* /us
 COPY --from=postgis-pg16 --link /usr/local/share/postgresql/extension/postgis* /usr/share/postgresql16/extension/
 
 # -----------------------------------------
-# Postgis pg-17 (new)
+# Extension Postgis pg-17 (new)
 # -----------------------------------------
 #Add required packages for runtime (see postgis dependencies)
 # hadolint ignore=DL3018
@@ -160,7 +161,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
         libturbojpeg
 
 # -----------------------------------------
-# Timescale pg-15 (old)
+# Extension Timescale pg-15 (old)
 # -----------------------------------------
 # Copy the new timescale version to the old postgresql version
 COPY --from=timescale-pg15 --link /usr/local/lib/postgresql/timescaledb*.so /usr/lib/postgresql15/
@@ -170,21 +171,21 @@ COPY --from=timescale-pg15 --link /lib/libssl.so.1.* /lib/
 COPY --from=timescale-pg15 --link /lib/libcrypto.so.1.* /lib/
 
 # -----------------------------------------
-# Timescale pg-16 (old)
+# Extension Timescale pg-16 (old)
 # -----------------------------------------
 # Copy the new timescale version to the old postgresql version
 COPY --from=timescale-pg16 --link /usr/local/lib/postgresql/timescaledb*.so /usr/lib/postgresql16/
 COPY --from=timescale-pg16 --link /usr/local/share/postgresql/extension/timescaledb* /usr/share/postgresql16/extension/
 
 # -----------------------------------------
-# Timescale pg-17 (new)
+# Extension Timescale pg-17 (new)
 # -----------------------------------------
 # Copy the new timescale version to the new postgresql version
 COPY --from=timescale-pg17 --link /usr/local/lib/postgresql/timescaledb*.so /usr/lib/postgresql17/
 COPY --from=timescale-pg17 --link /usr/local/share/postgresql/extension/timescaledb* /usr/share/postgresql17/extension/
 
 # --------------------------------------------
-# pgAgent pg-17 (new)
+# Extension pgAgent pg-17 (new)
 # --------------------------------------------
 # Copy the new timescale version to the new postgresql version
 COPY --from=pgagent-pg17 --link /usr/local/lib/postgresql/pgagent*.so /usr/lib/postgresql17/
@@ -202,14 +203,14 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
         boost-libs
 
 # --------------------------------------
-# Timescaledb pg16 toolkit (old)
+# Extension Timescaledb-Toolkit pg16 (old)
 # --------------------------------------
 # Copy new timescaledb-toolkit to new postgresql version
 COPY --from=timescaledb-toolkit-pg16 --link /usr/local/lib/postgresql/timescaledb_toolkit* /usr/lib/postgresql16/
 COPY --from=timescaledb-toolkit-pg16 --link /usr/local/share/postgresql/extension/timescaledb_toolkit* /usr/share/postgresql16/extension/
 
 # --------------------------------------
-# Timescaledb pg17 toolkit (new)
+# Extension Timescaledb-Toolkit pg17 (new)
 # --------------------------------------
 # Copy new timescaledb-toolkit to new postgresql version
 COPY --from=timescaledb-toolkit-pg17 --link /usr/local/lib/postgresql/timescaledb_toolkit* /usr/lib/postgresql17/
@@ -223,51 +224,27 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
         gcompat \
         clang16-libclang
 
+
+# --------------------------------------------
+# Extension System-Stat pg-16 (old)
+# --------------------------------------------
+COPY --from=system-stat-pg16 --link /usr/local/lib/postgresql/system-stat*.so /usr/lib/postgresql16/
+COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system-stat* /usr/share/postgresql16/extension/
+COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system-stat* /usr/share/postgresql16/extension/
+
+# --------------------------------------------
+# Extension System-Stat pg-17 (new)
+# --------------------------------------------
+COPY --from=system-stat-pg16 --link /usr/local/lib/postgresql/system-stat*.so /usr/lib/postgresql16/
+COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system-stat* /usr/share/postgresql16/extension/
+COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system-stat* /usr/share/postgresql16/extension/
+
 # --------------------------------------
-# Timescaledb Tools pg17 toolkit (new)
+# Timescaledb Tools (alwasys latest)
 # --------------------------------------
 # Copy timescaledb-tools
 COPY --from=timescaledb-tools /go/bin/* /usr/local/bin/
 
-# --------------------------------------
-# System-Stats Extension
-# --------------------------------------
-ARG SYSTEM_STATS_VERSION=v3.2
-RUN mkdir -p /build
-# hadolint ignore=DL3018, DL3003
-RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
-    set -ex \
-    && apk update \
-    && apk add --virtual .fetch-deps \
-                ca-certificates \
-                git \
-                openssl \
-                openssl-dev \
-                tar \
-        && apk add -u musl \
-    && apk add --virtual .build-deps \
-                coreutils \
-                gcc \
-                make \
-                cmake \
-                build-base \
-                boost-dev \
-                openldap-dev \
-                clang15 \
-                llvm15 \
-    && git clone https://github.com/EnterpriseDB/system_stats.git /build/system-stats \
-        && cd /build/system-stats \
-        && git checkout ${SYSTEM_STATS_VERSION}
-
-WORKDIR /build/system-stats
-RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
-    set -ex \
-    && PATH=/usr/local/pgsql/bin:$PATH make USE_PGXS=1 \
-    && PATH=/usr/local/pgsql/bin:$PATH make install USE_PGXS=1 \
-    && apk del .fetch-deps .build-deps \
-        && rm -rf /build
-WORKDIR /
-    
 
 ###########################################
 # Finalize Image
