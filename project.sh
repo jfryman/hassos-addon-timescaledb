@@ -181,7 +181,7 @@ elif [ "$1" == "build-dependencies" ]; then
         build_dependency timescaledb-toolkit-pg16 "1.19.0"
         build_dependency timescaledb-toolkit-pg17 "1.19.0"
         build_dependency postgis-pg15 "3.5.1"
-        build_dependency postgis-pg15 "3.5.1"
+        build_dependency postgis-pg16 "3.5.1"
         build_dependency postgresql-extension-system-stat-pg16 "3.2"
         build_dependency postgresql-extension-system-stat-pg17 "3.2"
     else
