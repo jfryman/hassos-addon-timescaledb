@@ -64,3 +64,7 @@ RUN --mount=type=cache,id=pgrx-${TARGETARCH}-${TARGETVARIANT},sharing=locked,tar
         && rm -rf /build \
         && echo "OK" /toolkit; \
     fi
+
+# Labels
+LABEL \
+    org.opencontainers.image.source="https://github.com/expaso/hassos-addon-timescaledb"

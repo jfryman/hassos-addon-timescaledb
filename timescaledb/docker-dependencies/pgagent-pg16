@@ -39,3 +39,8 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
     && rm -rf /build \
 	&& apk add \
 				boost-libs
+
+
+# Labels
+LABEL \
+    org.opencontainers.image.source="https://github.com/expaso/hassos-addon-timescaledb"

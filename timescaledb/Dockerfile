@@ -11,15 +11,15 @@ FROM timescale/timescaledb:2.17.2-pg15                                      AS t
 FROM timescale/timescaledb:2.17.2-pg16                                      AS timescale-pg16
 FROM timescale/timescaledb:2.17.2-pg17                                      AS timescale-pg17
 # hadolint ignore=DL3007
-FROM ghcr.io/expaso/timescaledb/timescaledb-tools:latest                    AS timescaledb-tools
-FROM ghcr.io/expaso/timescaledb/pgagent-pg16:REL-4_2_2                      AS pgagent-pg16
-FROM ghcr.io/expaso/timescaledb/pgagent-pg17:REL-4_2_2                      AS pgagent-pg17
-FROM ghcr.io/expaso/timescaledb/postgis-pg15:3.5.1                          AS postgis-pg15
-FROM ghcr.io/expaso/timescaledb/postgis-pg16:3.5.1                          AS postgis-pg16
-FROM ghcr.io/expaso/timescaledb/timescaledb-toolkit-pg16:1.19.0             AS timescaledb-toolkit-pg16
-FROM ghcr.io/expaso/timescaledb/timescaledb-toolkit-pg17:1.19.0             AS timescaledb-toolkit-pg17
-FROM ghcr.io/expaso/timescaledb/postgresql-extension-system-stat-pg16:3.2   AS system-stat-pg16
-FROM ghcr.io/expaso/timescaledb/postgresql-extension-system-stat-pg17:3.2   AS system-stat-pg17
+FROM ghcr.io/expaso/hassos-addon-timescaledb/dependency-timescaledb-tools:latest                    AS timescaledb-tools
+FROM ghcr.io/expaso/hassos-addon-timescaledb/dependency-pgagent-pg16:REL-4_2_2                      AS pgagent-pg16
+FROM ghcr.io/expaso/hassos-addon-timescaledb/dependency-pgagent-pg17:REL-4_2_2                      AS pgagent-pg17
+FROM ghcr.io/expaso/hassos-addon-timescaledb/dependency-postgis-pg15:3.5.1                          AS postgis-pg15
+FROM ghcr.io/expaso/hassos-addon-timescaledb/dependency-postgis-pg16:3.5.1                          AS postgis-pg16
+FROM ghcr.io/expaso/hassos-addon-timescaledb/dependency-timescaledb-toolkit-pg16:1.19.0             AS timescaledb-toolkit-pg16
+FROM ghcr.io/expaso/hassos-addon-timescaledb/dependency-timescaledb-toolkit-pg17:1.19.0             AS timescaledb-toolkit-pg17
+FROM ghcr.io/expaso/hassos-addon-timescaledb/dependency-postgresql-extension-system-stat-pg16:3.2   AS system-stat-pg16
+FROM ghcr.io/expaso/hassos-addon-timescaledb/dependency-postgresql-extension-system-stat-pg17:3.2   AS system-stat-pg17
 
 ###########################################
 # Define base Image

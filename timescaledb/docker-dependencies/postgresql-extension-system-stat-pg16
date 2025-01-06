@@ -37,3 +37,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
     && PATH=/usr/local/pgsql/bin:$PATH make install USE_PGXS=1 \
     && apk del .fetch-deps .build-deps \
         && rm -rf /build
+
+# Labels
+LABEL \
+    org.opencontainers.image.source="https://github.com/expaso/hassos-addon-timescaledb"
