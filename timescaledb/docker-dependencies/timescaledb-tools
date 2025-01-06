@@ -6,8 +6,10 @@ ARG GO_VERSION=1.22.1
 FROM golang:${GO_VERSION}-alpine AS timescaledb-tools
 
 ARG VERSION=latest
+ARG TARGETARCH
+ARG TARGETVARIANT
 
-ENV TOOLS_VERSION 0.8.1
+ENV TOOLS_VERSION=0.8.1
 # hadolint ignore=DL3018
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     apk update && apk add --no-cache \
