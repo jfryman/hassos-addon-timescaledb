@@ -4,6 +4,8 @@ FROM timescale-pg17 AS timescaledb-toolkit
 ARG VERSION
 ARG TARGETARCH
 ARG TARGETVARIANT
+
+# hadolint ignore=DL3018, SC3014
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     --mount=type=cache,id=cargo-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/root/.cargo \
     set -ex \
@@ -32,6 +34,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
        fi
 
 # Add compatibility libraries for timescaledb toolkit
+# hadolint ignore=DL3018, SC3014
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     set -ex \
     && apk update \
@@ -40,7 +43,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
     fi
 
 ENV RUST_MIN_STACK=4194304
-
+# hadolint ignore=DL3003, SC3014
 RUN --mount=type=cache,id=pgrx-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/root/.pgrx \
     --mount=type=cache,id=cargo-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/root/.cargo \
     set -ex \
