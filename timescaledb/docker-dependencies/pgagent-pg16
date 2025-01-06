@@ -9,6 +9,7 @@ ARG TARGETVARIANT
 RUN mkdir -p /build
 COPY timescaledb/pgagent.patch /build/
 
+# hadolint ignore=DL3018, DL3003
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     set -ex \
     && apk update \

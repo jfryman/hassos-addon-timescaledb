@@ -9,6 +9,7 @@ ARG TARGETARCH
 ARG TARGETVARIANT
 
 # PostGIS - Add required packages for runtime (see postgis dependencies)
+# hadolint ignore=DL3018, DL3003
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     set -ex \
     && apk update \
@@ -28,6 +29,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
     proj \
     protobuf-c
 
+# hadolint ignore=DL3018, DL3003
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     set -ex \
     && apk update \
@@ -39,7 +41,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
                 tar \
                 wget \
     && mkdir -p /build/ \
-    && wget -P /build https://download.osgeo.org/postgis/source/postgis-${VERSION}.tar.gz \
+    && wget --progress=dot:giga -P /build https://download.osgeo.org/postgis/source/postgis-${VERSION}.tar.gz \
     && apk add --virtual .build-deps \
                 coreutils \
                 gcc \

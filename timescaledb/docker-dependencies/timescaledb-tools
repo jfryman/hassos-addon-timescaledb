@@ -8,6 +8,7 @@ FROM golang:${GO_VERSION}-alpine AS timescaledb-tools
 ARG VERSION=latest
 
 ENV TOOLS_VERSION 0.8.1
+# hadolint ignore=DL3018
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     apk update && apk add --no-cache \
         git \
