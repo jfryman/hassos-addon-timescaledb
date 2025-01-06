@@ -1,5 +1,5 @@
-FROM timescale/timescaledb:latest-pg16
-ARG VERSION=3.2
+FROM timescale/timescaledb:latest-pg17
+ARG VERSION
 
 RUN mkdir -p /build
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
