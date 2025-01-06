@@ -88,7 +88,6 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
         postgresql17-contrib-jit \
         postgresql17-contrib
 
-
 # Set default postgresql version to 17
 RUN rm /usr/libexec/postgresql \
     && ln -s /usr/libexec/postgresql17 /usr/libexec/postgresql \
@@ -190,7 +189,6 @@ COPY --from=timescale-pg17 --link /usr/local/share/postgresql/extension/timescal
 # Copy the new timescale version to the new postgresql version
 COPY --from=pgagent-pg17 --link /usr/local/lib/postgresql/pgagent*.so /usr/lib/postgresql17/
 COPY --from=pgagent-pg17 --link /usr/local/share/postgresql/extension/pgagent* /usr/share/postgresql17/extension/
-COPY --from=pgagent-pg17 --link /usr/local/share/postgresql/extension/pgagent* /usr/share/postgresql17/extension/
 
 COPY --from=pgagent-pg17 --link /usr/local/share/pgagent.sql /usr/local/share/
 COPY --from=pgagent-pg17 --link /usr/local/bin/pgagent /usr/local/bin/
@@ -224,27 +222,23 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
         gcompat \
         clang16-libclang
 
-
 # --------------------------------------------
 # Extension System-Stat pg-16 (old)
 # --------------------------------------------
-COPY --from=system-stat-pg16 --link /usr/local/lib/postgresql/system-stat*.so /usr/lib/postgresql16/
-COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system-stat* /usr/share/postgresql16/extension/
-COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system-stat* /usr/share/postgresql16/extension/
+COPY --from=system-stat-pg16 --link /usr/local/lib/postgresql/system_stats*.so /usr/lib/postgresql16/
+COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system_stats* /usr/share/postgresql16/extension/
 
 # --------------------------------------------
 # Extension System-Stat pg-17 (new)
 # --------------------------------------------
-COPY --from=system-stat-pg16 --link /usr/local/lib/postgresql/system-stat*.so /usr/lib/postgresql16/
-COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system-stat* /usr/share/postgresql16/extension/
-COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system-stat* /usr/share/postgresql16/extension/
+COPY --from=system-stat-pg17 --link /usr/local/lib/postgresql/system_stats*.so /usr/lib/postgresql17/
+COPY --from=system-stat-pg17 --link /usr/local/share/postgresql/extension/system_stats* /usr/share/postgresql17/extension/
 
 # --------------------------------------
 # Timescaledb Tools (alwasys latest)
 # --------------------------------------
 # Copy timescaledb-tools
 COPY --from=timescaledb-tools /go/bin/* /usr/local/bin/
-
 
 ###########################################
 # Finalize Image
