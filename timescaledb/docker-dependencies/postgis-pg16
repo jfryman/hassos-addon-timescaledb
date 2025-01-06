@@ -1,5 +1,5 @@
 
-FROM timescale/timescaledb:latest-pg16 as timescale-pg16
+FROM timescale/timescaledb:latest-pg16 AS timescale-pg16
 
 # --------------------------------------
 # PostGIS - Build and install OLD Postgis (for upgrade reasons)
