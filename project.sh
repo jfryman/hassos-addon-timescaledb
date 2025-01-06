@@ -41,9 +41,9 @@ function build_dependency() {
     docker buildx build \
         --push \
         --platform "linux/amd64,linux/arm64,linux/arm/v7,linux/i386,linux/arm/v6" \
-        --cache-from "type=registry,ref=ghcr.io/expaso/hassos-addon-timescaledb/dependency-${component}:cache" \
-        --cache-to "type=registry,ref=ghcr.io/expaso/hassos-addon-timescaledb/dependency-${component}:cache,mode=max" \
-        --tag "ghcr.io/expaso/expaso/hassos-addon-timescaledb/dependency-${component}:${version}" \
+        --cache-from "type=registry,ref=ghcr.io/expaso/timescaledb/dependency/${component}:cache" \
+        --cache-to "type=registry,ref=ghcr.io/expaso/timescaledb/dependency/${component}:cache,mode=max" \
+        --tag "ghcr.io/expaso/timescaledb/dependency/${component}:${version}" \
         --progress plain \
         --build-arg "VERSION=${version}" \
         --file "./timescaledb/docker-dependencies/${component}" \
