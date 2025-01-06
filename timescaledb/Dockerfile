@@ -5,16 +5,20 @@ ARG ALPINE_VERSION=3.21
 
 # Define the versions for all components of the addon
 # These images are all prebuild, otherwise building the docker images takes waaaay to long
+# Where possible, we just take the latest version from the Alpine repository, so it's
+# possible we won't mention the latest version here.
 FROM timescale/timescaledb:2.17.2-pg15                                      AS timescale-pg15
 FROM timescale/timescaledb:2.17.2-pg16                                      AS timescale-pg16
 FROM timescale/timescaledb:2.17.2-pg17                                      AS timescale-pg17
 
 # hadolint ignore=DL3007
 FROM ghcr.io/expaso/timescaledb/timescaledb-tools:latest                    AS timescaledb-tools
+FROM ghcr.io/expaso/timescaledb/pgagent-pg16:REL_4_2_2                      AS pgagent-pg16
 FROM ghcr.io/expaso/timescaledb/pgagent-pg17:REL_4_2_2                      AS pgagent-pg17
+FROM ghcr.io/expaso/timescaledb/postgis-pg15:3.5.1                          AS postgis-pg15
+FROM ghcr.io/expaso/timescaledb/postgis-pg16:3.5.1                          AS postgis-pg16
 FROM ghcr.io/expaso/timescaledb/timescaledb-toolkit-pg16:1.18.0             AS timescaledb-toolkit-pg16
 FROM ghcr.io/expaso/timescaledb/timescaledb-toolkit-pg17:1.19.0             AS timescaledb-toolkit-pg17
-
 
 ###########################################
 # Define base Image
@@ -41,7 +45,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
 ###########################################
 
 # -----------------------------------------
-# PostgreSql 15 (OLD)
+# PostgreSql 15 (old)
 # -----------------------------------------
 # hadolint ignore=DL3018
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
@@ -97,7 +101,7 @@ RUN mkdir -p /run/postgresql \
 	&& chown -R postgres:postgres /run/postgresql/extensions
 
 # -----------------------------------------
-# Postgis pg-15 (OLD)
+# Postgis pg-15 (old)
 # -----------------------------------------
 
 # Postgis + Postgis-Raster
@@ -110,7 +114,7 @@ COPY --from=postgis-pg15 --link /usr/local/share/postgresql/contrib/postgis* /us
 COPY --from=postgis-pg15 --link /usr/local/share/postgresql/extension/postgis* /usr/share/postgresql15/extension/
 
 # -----------------------------------------
-# Postgis pg-16 (OLD)
+# Postgis pg-16 (old)
 # -----------------------------------------
 
 # Postgis + Postgis-Raster
@@ -122,9 +126,8 @@ COPY --from=postgis-pg16 --link /usr/local/lib/postgresql/bitcode/postgis_raster
 COPY --from=postgis-pg16 --link /usr/local/share/postgresql/contrib/postgis* /usr/share/postgresql16/contrib/
 COPY --from=postgis-pg16 --link /usr/local/share/postgresql/extension/postgis* /usr/share/postgresql16/extension/
 
-
 # -----------------------------------------
-# Postgis pg-17 (NEW)
+# Postgis pg-17 (new)
 # -----------------------------------------
 #Add required packages for runtime (see postgis dependencies)
 # hadolint ignore=DL3018
@@ -151,13 +154,13 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
     set -ex \
     && apk add --repository https://dl-cdn.alpinelinux.org/alpine/v3.21/community --allow-untrusted \
         postgis=3.5.0-r5 \
-        gdal-driver-PostGISRaster \
+        gdal-driver-postgisraster \
     && \
     apk add --repository https://dl-cdn.alpinelinux.org/alpine/v3.21/main \
         libturbojpeg
 
 # -----------------------------------------
-# Timescale pg-15 (OLD)
+# Timescale pg-15 (old)
 # -----------------------------------------
 # Copy the new timescale version to the old postgresql version
 COPY --from=timescale-pg15 --link /usr/local/lib/postgresql/timescaledb*.so /usr/lib/postgresql15/
@@ -167,21 +170,21 @@ COPY --from=timescale-pg15 --link /lib/libssl.so.1.* /lib/
 COPY --from=timescale-pg15 --link /lib/libcrypto.so.1.* /lib/
 
 # -----------------------------------------
-# Timescale pg-16 (OLD)
+# Timescale pg-16 (old)
 # -----------------------------------------
 # Copy the new timescale version to the old postgresql version
 COPY --from=timescale-pg16 --link /usr/local/lib/postgresql/timescaledb*.so /usr/lib/postgresql16/
 COPY --from=timescale-pg16 --link /usr/local/share/postgresql/extension/timescaledb* /usr/share/postgresql16/extension/
 
 # -----------------------------------------
-# Timescale pg-17 (NEW)
+# Timescale pg-17 (new)
 # -----------------------------------------
 # Copy the new timescale version to the new postgresql version
 COPY --from=timescale-pg17 --link /usr/local/lib/postgresql/timescaledb*.so /usr/lib/postgresql17/
 COPY --from=timescale-pg17 --link /usr/local/share/postgresql/extension/timescaledb* /usr/share/postgresql17/extension/
 
 # --------------------------------------------
-# pgAgent pg-17 (NEW)
+# pgAgent pg-17 (new)
 # --------------------------------------------
 # Copy the new timescale version to the new postgresql version
 COPY --from=pgagent-pg17 --link /usr/local/lib/postgresql/pgagent*.so /usr/lib/postgresql17/
@@ -205,9 +208,8 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
 COPY --from=timescaledb-toolkit-pg16 --link /usr/local/lib/postgresql/timescaledb_toolkit* /usr/lib/postgresql16/
 COPY --from=timescaledb-toolkit-pg16 --link /usr/local/share/postgresql/extension/timescaledb_toolkit* /usr/share/postgresql16/extension/
 
-
 # --------------------------------------
-# Timescaledb pg17 toolkit (NEW)
+# Timescaledb pg17 toolkit (new)
 # --------------------------------------
 # Copy new timescaledb-toolkit to new postgresql version
 COPY --from=timescaledb-toolkit-pg17 --link /usr/local/lib/postgresql/timescaledb_toolkit* /usr/lib/postgresql17/
@@ -222,7 +224,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
         clang16-libclang
 
 # --------------------------------------
-# Timescaledb Tools pg17 toolkit (NEW)
+# Timescaledb Tools pg17 toolkit (new)
 # --------------------------------------
 # Copy timescaledb-tools
 COPY --from=timescaledb-tools /go/bin/* /usr/local/bin/
