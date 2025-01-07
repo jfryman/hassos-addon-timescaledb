@@ -79,7 +79,7 @@ function build() {
 
 function run_hassos() {
     # Run the docker image on hassos
-    printInColor "Pulling and restarring on HASSOS.. "
+    printInColor "Pulling and restarting on HASSOS.. "
 
     # # Copy the docker image to hassos
     # printInColor "Pulling docker image on hassos.." "yellow"
