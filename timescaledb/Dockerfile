@@ -1,17 +1,25 @@
-ARG BUILD_FROM=ghcr.io/hassio-addons/base/aarch64:16.2.1
+ARG BUILD_FROM=ghcr.io/hassio-addons/base/aarch64:17.0.1
 ARG BUILD_ARCH=aarch64
 
-ARG ALPINE_VERSION=3.20
+ARG ALPINE_VERSION=3.21
 
 # Define the versions for all components of the addon
 # These images are all prebuild, otherwise building the docker images takes waaaay to long
-FROM timescale/timescaledb:2.16.1-pg15                                      AS timescale-pg15
-FROM timescale/timescaledb:2.16.1-pg16                                      AS timescale-pg16
+# Where possible, we just take the latest version from the Alpine repository, so it's
+# possible we won't mention the latest version here.
+FROM timescale/timescaledb:2.17.2-pg15                                          AS timescale-pg15   
+FROM timescale/timescaledb:2.17.2-pg16                                          AS timescale-pg16   
+FROM timescale/timescaledb:2.17.2-pg17                                          AS timescale-pg17   
 # hadolint ignore=DL3007
-FROM husselhans/hassos-addon-timescaledb-timescaledb-tools:latest           AS timescaledb-tools
-FROM husselhans/hassos-addon-timescaledb-postgis-pg15:3.3.3                 AS postgis-pg15
-FROM husselhans/hassos-addon-timescaledb-pgagent-pg16:4.2.2                 AS pgagent-pg16
-FROM husselhans/hassos-addon-timescaledb-timescaledb-toolkit-pg16:1.18.0    AS timescaledb-toolkit-pg16
+FROM ghcr.io/expaso/timescaledb/dependency/timescaledb-tools:latest                    AS timescaledb-tools
+FROM ghcr.io/expaso/timescaledb/dependency/pgagent-pg16:REL-4_2_2                      AS pgagent-pg16
+FROM ghcr.io/expaso/timescaledb/dependency/pgagent-pg17:REL-4_2_2                      AS pgagent-pg17
+FROM ghcr.io/expaso/timescaledb/dependency/postgis-pg15:3.5.1                          AS postgis-pg15
+FROM ghcr.io/expaso/timescaledb/dependency/postgis-pg16:3.5.1                          AS postgis-pg16
+FROM ghcr.io/expaso/timescaledb/dependency/timescaledb-toolkit-pg16:1.19.0             AS timescaledb-toolkit-pg16
+FROM ghcr.io/expaso/timescaledb/dependency/timescaledb-toolkit-pg17:1.19.0             AS timescaledb-toolkit-pg17
+FROM ghcr.io/expaso/timescaledb/dependency/postgresql-extension-system-stat-pg16:3.2   AS system-stat-pg16
+FROM ghcr.io/expaso/timescaledb/dependency/postgresql-extension-system-stat-pg17:3.2   AS system-stat-pg17
 
 ###########################################
 # Define base Image
@@ -38,7 +46,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
 ###########################################
 
 # -----------------------------------------
-# PostgreSql 15 (OLD)
+# PostgreSql 15 (old)
 # -----------------------------------------
 # hadolint ignore=DL3018
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
@@ -55,7 +63,7 @@ RUN rm /usr/bin/pg_config \
     && ln -s /usr/libexec/postgresql/pg_config /usr/bin/pg_config
 
 # -----------------------------------------
-# PostgreSql 16 (NEW)
+# PostgreSql 16 (old)
 # -----------------------------------------
 # hadolint ignore=DL3018
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
@@ -67,11 +75,24 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
         postgresql16-contrib-jit \
         postgresql16-contrib
 
-# Set default postgresql version to 16
+# -----------------------------------------
+# PostgreSql 17 (new)
+# -----------------------------------------
+# hadolint ignore=DL3018
+RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
+    set -ex \
+    && apk add \
+        postgresql17-jit \
+        postgresql17 \
+        postgresql17-dev \
+        postgresql17-contrib-jit \
+        postgresql17-contrib
+
+# Set default postgresql version to 17
 RUN rm /usr/libexec/postgresql \
-    && ln -s /usr/libexec/postgresql16 /usr/libexec/postgresql \
+    && ln -s /usr/libexec/postgresql17 /usr/libexec/postgresql \
     && rm /usr/share/postgresql \
-    && ln -s /usr/share/postgresql16 /usr/share/postgresql
+    && ln -s /usr/share/postgresql17 /usr/share/postgresql
 
 # Create it's run directory
 RUN mkdir -p /run/postgresql \
@@ -80,7 +101,7 @@ RUN mkdir -p /run/postgresql \
 	&& chown -R postgres:postgres /run/postgresql/extensions
 
 # -----------------------------------------
-# Postgis pg-15 (OLD)
+# Extension Postgis pg-15 (old)
 # -----------------------------------------
 
 # Postgis + Postgis-Raster
@@ -93,7 +114,20 @@ COPY --from=postgis-pg15 --link /usr/local/share/postgresql/contrib/postgis* /us
 COPY --from=postgis-pg15 --link /usr/local/share/postgresql/extension/postgis* /usr/share/postgresql15/extension/
 
 # -----------------------------------------
-# Postgis pg-16 (NEW)
+# Extension Postgis pg-16 (old)
+# -----------------------------------------
+
+# Postgis + Postgis-Raster
+COPY --from=postgis-pg16 --link /usr/local/lib/postgresql/postgis* /usr/lib/postgresql16/
+
+COPY --from=postgis-pg16 --link /usr/local/lib/postgresql/bitcode/postgis-3/* /usr/lib/postgresql16/bitcode/postgis-3/
+COPY --from=postgis-pg16 --link /usr/local/lib/postgresql/bitcode/postgis_raster-3/* /usr/lib/postgresql16/bitcode/postgis_raster-3/
+
+COPY --from=postgis-pg16 --link /usr/local/share/postgresql/contrib/postgis* /usr/share/postgresql16/contrib/
+COPY --from=postgis-pg16 --link /usr/local/share/postgresql/extension/postgis* /usr/share/postgresql16/extension/
+
+# -----------------------------------------
+# Extension Postgis pg-17 (new)
 # -----------------------------------------
 #Add required packages for runtime (see postgis dependencies)
 # hadolint ignore=DL3018
@@ -118,15 +152,15 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
 # hadolint ignore=DL3018
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     set -ex \
-    && apk add --repository https://dl-cdn.alpinelinux.org/alpine/v3.19/community --allow-untrusted \
-        postgis=3.4.2-r2 \
-        gdal-driver-PostGISRaster \
+    && apk add --repository https://dl-cdn.alpinelinux.org/alpine/v3.21/community --allow-untrusted \
+        postgis=3.5.0-r5 \
+        gdal-driver-postgisraster \
     && \
-    apk add --repository https://dl-cdn.alpinelinux.org/alpine/v3.19/main \
+    apk add --repository https://dl-cdn.alpinelinux.org/alpine/v3.21/main \
         libturbojpeg
 
 # -----------------------------------------
-# Timescale pg-15 (OLD)
+# Extension Timescale pg-15 (old)
 # -----------------------------------------
 # Copy the new timescale version to the old postgresql version
 COPY --from=timescale-pg15 --link /usr/local/lib/postgresql/timescaledb*.so /usr/lib/postgresql15/
@@ -136,22 +170,28 @@ COPY --from=timescale-pg15 --link /lib/libssl.so.1.* /lib/
 COPY --from=timescale-pg15 --link /lib/libcrypto.so.1.* /lib/
 
 # -----------------------------------------
-# Timescale pg-16 (NEW)
+# Extension Timescale pg-16 (old)
 # -----------------------------------------
-# Copy the new timescale version to the new postgresql version
+# Copy the new timescale version to the old postgresql version
 COPY --from=timescale-pg16 --link /usr/local/lib/postgresql/timescaledb*.so /usr/lib/postgresql16/
 COPY --from=timescale-pg16 --link /usr/local/share/postgresql/extension/timescaledb* /usr/share/postgresql16/extension/
 
+# -----------------------------------------
+# Extension Timescale pg-17 (new)
+# -----------------------------------------
+# Copy the new timescale version to the new postgresql version
+COPY --from=timescale-pg17 --link /usr/local/lib/postgresql/timescaledb*.so /usr/lib/postgresql17/
+COPY --from=timescale-pg17 --link /usr/local/share/postgresql/extension/timescaledb* /usr/share/postgresql17/extension/
+
 # --------------------------------------------
-# pgAgent pg-16 (NEW)
+# Extension pgAgent pg-17 (new)
 # --------------------------------------------
 # Copy the new timescale version to the new postgresql version
-COPY --from=pgagent-pg16 --link /usr/local/lib/postgresql/pgagent*.so /usr/lib/postgresql16/
-COPY --from=pgagent-pg16 --link /usr/local/share/postgresql/extension/pgagent* /usr/share/postgresql16/extension/
-COPY --from=pgagent-pg16 --link /usr/local/share/postgresql/extension/pgagent* /usr/share/postgresql16/extension/
+COPY --from=pgagent-pg17 --link /usr/local/lib/postgresql/pgagent*.so /usr/lib/postgresql17/
+COPY --from=pgagent-pg17 --link /usr/local/share/postgresql/extension/pgagent* /usr/share/postgresql17/extension/
 
-COPY --from=pgagent-pg16 --link /usr/local/share/pgagent.sql /usr/local/share/
-COPY --from=pgagent-pg16 --link /usr/local/bin/pgagent /usr/local/bin/
+COPY --from=pgagent-pg17 --link /usr/local/share/pgagent.sql /usr/local/share/
+COPY --from=pgagent-pg17 --link /usr/local/bin/pgagent /usr/local/bin/
 
 # Add compatibility libraries
 # hadolint ignore=DL3018
@@ -161,13 +201,20 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
         boost-libs
 
 # --------------------------------------
-# Timescaledb pg16 toolkit (NEW)
+# Extension Timescaledb-Toolkit pg16 (old)
 # --------------------------------------
 # Copy new timescaledb-toolkit to new postgresql version
 COPY --from=timescaledb-toolkit-pg16 --link /usr/local/lib/postgresql/timescaledb_toolkit* /usr/lib/postgresql16/
 COPY --from=timescaledb-toolkit-pg16 --link /usr/local/share/postgresql/extension/timescaledb_toolkit* /usr/share/postgresql16/extension/
 
-# Add compatibility librarties for timescaledb toolkit
+# --------------------------------------
+# Extension Timescaledb-Toolkit pg17 (new)
+# --------------------------------------
+# Copy new timescaledb-toolkit to new postgresql version
+COPY --from=timescaledb-toolkit-pg17 --link /usr/local/lib/postgresql/timescaledb_toolkit* /usr/lib/postgresql17/
+COPY --from=timescaledb-toolkit-pg17 --link /usr/local/share/postgresql/extension/timescaledb_toolkit* /usr/share/postgresql17/extension/
+
+# Add compatibility libraries for timescaledb toolkit
 # hadolint ignore=DL3018
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     set -ex \
@@ -175,51 +222,23 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
         gcompat \
         clang16-libclang
 
+# --------------------------------------------
+# Extension System-Stat pg-16 (old)
+# --------------------------------------------
+COPY --from=system-stat-pg16 --link /usr/local/lib/postgresql/system_stats*.so /usr/lib/postgresql16/
+COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system_stats* /usr/share/postgresql16/extension/
+
+# --------------------------------------------
+# Extension System-Stat pg-17 (new)
+# --------------------------------------------
+COPY --from=system-stat-pg17 --link /usr/local/lib/postgresql/system_stats*.so /usr/lib/postgresql17/
+COPY --from=system-stat-pg17 --link /usr/local/share/postgresql/extension/system_stats* /usr/share/postgresql17/extension/
+
 # --------------------------------------
-# Timescaledb Tools pg16 toolkit (NEW)
+# Timescaledb Tools (alwasys latest)
 # --------------------------------------
 # Copy timescaledb-tools
 COPY --from=timescaledb-tools /go/bin/* /usr/local/bin/
-
-# --------------------------------------
-# System-Stats Extension
-# --------------------------------------
-ARG SYSTEM_STATS_VERSION=v3.2
-RUN mkdir -p /build
-# hadolint ignore=DL3018, DL3003
-RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
-    set -ex \
-    && apk update \
-    && apk add --virtual .fetch-deps \
-                ca-certificates \
-                git \
-                openssl \
-                openssl-dev \
-                tar \
-        && apk add -u musl \
-    && apk add --virtual .build-deps \
-                coreutils \
-                gcc \
-                make \
-                cmake \
-                build-base \
-                boost-dev \
-                openldap-dev \
-                clang15 \
-                llvm15 \
-    && git clone https://github.com/EnterpriseDB/system_stats.git /build/system-stats \
-        && cd /build/system-stats \
-        && git checkout ${SYSTEM_STATS_VERSION}
-
-WORKDIR /build/system-stats
-RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
-    set -ex \
-    && PATH=/usr/local/pgsql/bin:$PATH make USE_PGXS=1 \
-    && PATH=/usr/local/pgsql/bin:$PATH make install USE_PGXS=1 \
-    && apk del .fetch-deps .build-deps \
-        && rm -rf /build
-WORKDIR /
-    
 
 ###########################################
 # Finalize Image

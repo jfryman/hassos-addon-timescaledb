@@ -1,5 +1,7 @@
 FROM timescale/timescaledb:latest-pg16
 ARG VERSION
+ARG TARGETARCH
+ARG TARGETVARIANT
 
 # --------------------------------------------
 # pgAgent - build pached version and install
@@ -7,6 +9,7 @@ ARG VERSION
 RUN mkdir -p /build
 COPY timescaledb/pgagent.patch /build/
 
+# hadolint ignore=DL3018, DL3003
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     set -ex \
     && apk update \
@@ -27,7 +30,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
 				openldap-dev \
 && git clone https://github.com/postgres/pgagent /build/pgagent \
     && cd /build/pgagent \
-    && git checkout ${PGAGENT_VERSION} \
+    && git checkout ${VERSION} \
 && git apply -v ../pgagent.patch \
     && cmake . \
     && make && make install \
@@ -36,3 +39,8 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
     && rm -rf /build \
 	&& apk add \
 				boost-libs
+
+
+# Labels
+LABEL \
+    org.opencontainers.image.source="https://github.com/expaso/hassos-addon-timescaledb"

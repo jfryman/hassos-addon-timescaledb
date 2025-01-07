@@ -41,9 +41,9 @@ function build_dependency() {
     docker buildx build \
         --push \
         --platform "linux/amd64,linux/arm64,linux/arm/v7,linux/i386,linux/arm/v6" \
-        --cache-from "type=registry,ref=ghcr.io/expaso/timescaledb/${component}:cache" \
-        --cache-to "type=registry,ref=ghcr.io/expaso/timescaledb/${component}:cache,mode=max" \
-        --tag "ghcr.io/expaso/timescaledb/${component}:${version}" \
+        --cache-from "type=registry,ref=ghcr.io/expaso/timescaledb/dependency/${component}:cache" \
+        --cache-to "type=registry,ref=ghcr.io/expaso/timescaledb/dependency/${component}:cache,mode=max" \
+        --tag "ghcr.io/expaso/timescaledb/dependency/${component}:${version}" \
         --progress plain \
         --build-arg "VERSION=${version}" \
         --file "./timescaledb/docker-dependencies/${component}" \
@@ -63,7 +63,6 @@ function build() {
         --platform ${PLATFORM} \
         --cache-from type=registry,ref=ghcr.io/expaso/timescaledb:cache \
         --tag ghcr.io/expaso/timescaledb/aarch64:dev \
-        --build-arg BUILD_FROM=ghcr.io/hassio-addons/base/aarch64:16.2.1 \
         --progress plain \
         --build-arg CACHE_BUST="$(date +%s)" \
         --output "${output}" \
@@ -80,7 +79,7 @@ function build() {
 
 function run_hassos() {
     # Run the docker image on hassos
-    printInColor "Pulling and restaring on HASOS.. "
+    printInColor "Pulling and restarting on HASSOS.. "
 
     # # Copy the docker image to hassos
     # printInColor "Pulling docker image on hassos.." "yellow"
@@ -101,7 +100,7 @@ function run_local() {
 
 function release() {
     local tag=$1
-    printInColor "Releasing docker images: retagging form [latest] with tag ${tag}.."
+    printInColor "Releasing docker images: retagging from [latest] with tag ${tag}.."
 
     #Get all platforms from /timescaledb/config.yaml
     platforms=$(yq -r '.arch[]' ./timescaledb/config.yaml)
@@ -124,7 +123,7 @@ function inspect() {
     docker run --entrypoint "/bin/ash" -it --rm --name timescaledb --platform ${PLATFORM} -v /tmp/timescale_data:/data -p 5432:5432 ghcr.io/expaso/timescaledb/aarch64:dev
 }
 
-function build_buildx() {
+function build_all() {
     local tag=$1
     printInColor "Building all platforms for Home Assistant with tag ${tag}"
 
@@ -164,37 +163,63 @@ function build_buildx() {
 
 }
 
+# Builds a dev tagged image locally
 if [ "$1" == "build" ]; then
+    build "type=docker"
+    exit 0
+
+# Builds a dev tagged image, and pushes it to the registry
+elif [ "$1" == "build-push" ]; then
     build "type=registry,push=true"
     exit 0
 
+# Builds all dependencies or a specific one, an pushes it to the registry 
 elif [ "$1" == "build-dependencies" ]; then
-    # build_dependency timescaledb-tools "latest"
-    # build_dependency pgagent-pg16 "4.2.2"
-    # build_dependency timescaledb-toolkit-pg16 "1.18.0"
-    # build_dependency postgis-pg15 "3.4.2"
-    build_dependency postgresql-extension-system-stat-pg16 "3.2"
+
+    # If the second argument is not set, then build all dependencies
+    # Otherwise, only build the given dependency
+    if [ -z "$2" ]; then
+        printInColor "Building all dependencies.."
+
+        build_dependency timescaledb-tools "latest"
+        build_dependency pgagent-pg16 "REL-4_2_2"
+        build_dependency pgagent-pg17 "REL-4_2_2"
+        build_dependency timescaledb-toolkit-pg16 "1.19.0"
+        build_dependency timescaledb-toolkit-pg17 "1.19.0"
+        build_dependency postgis-pg15 "3.5.1"
+        build_dependency postgis-pg16 "3.5.1"
+        build_dependency postgresql-extension-system-stat-pg16 "3.2"
+        build_dependency postgresql-extension-system-stat-pg17 "3.2"
+    else
+        printInColor "Building dependency $2.."
+        build_dependency "$2" "$3"
+    fi
     exit 0
 
-elif [ "$1" == "build-buildx" ]; then
-    build_buildx latest
+# Build all architectures for Home Assistant with the latest tag and pushes it to the registry
+elif [ "$1" == "build-all" ]; then
+    build_all latest
     exit 0
 
+# Builds a dev tagged image, pushes it tourgh the registy and restarts the addon on Hassos
 elif [ "$1" == "run-hassos" ]; then
     build "type=registry,push=true"
     run_hassos
     exit 0
 
+# Builds a dev tagged image locally
 elif [ "$1" == "debug" ]; then
     build type=docker
     run_local
     exit 0
 
+# Runs a shell in the dev tagged image locally
 elif [ "$1" == "inspect" ]; then
     # build type=docker
     inspect "$2"
     exit 0
 
+# Retags the output images of build_all (latest) to the given tag and pushes them to the registry
 elif [ "$1" == "release" ]; then
     release "$2"
     exit 0

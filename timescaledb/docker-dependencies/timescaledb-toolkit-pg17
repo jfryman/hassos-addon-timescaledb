@@ -1,6 +1,6 @@
-FROM timescale/timescaledb:latest-pg16 AS timescale-pg16
+FROM timescale/timescaledb:latest-pg17 AS timescale-pg17
 
-FROM timescale-pg16 AS timescaledb-toolkit
+FROM timescale-pg17 AS timescaledb-toolkit
 ARG VERSION
 ARG TARGETARCH
 ARG TARGETVARIANT
@@ -55,9 +55,9 @@ RUN --mount=type=cache,id=pgrx-${TARGETARCH}-${TARGETVARIANT},sharing=locked,tar
             && git checkout ${VERSION} \
             && cd extension \
             # initdb fails as root so generate the correct config ourselves
-            # && cargo pgx init --pg16 /usr/lib/postgresql/14/bin/pg_config        
+            # && cargo pgx init --pg17 /usr/lib/postgresql/17/bin/pg_config        
             && mkdir -p /root/.pgrx \
-            && printf '[configs]\npg16="/usr/local/bin/pg_config"\n' > /root/.pgrx/config.toml \
+            && printf '[configs]\npg17="/usr/local/bin/pg_config"\n' > /root/.pgrx/config.toml \
             && cargo pgrx install --release \
             && cargo run --manifest-path ../tools/post-install/Cargo.toml -- /usr/local/bin/pg_config \
         && cd ~ \

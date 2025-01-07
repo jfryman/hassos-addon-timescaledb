@@ -1,5 +1,5 @@
 
-FROM timescale/timescaledb:latest-pg15 AS timescale-pg15
+FROM timescale/timescaledb:latest-pg16 AS timescale-pg16
 
 # --------------------------------------
 # PostGIS - Build and install OLD Postgis (for upgrade reasons)
@@ -9,7 +9,7 @@ ARG TARGETARCH
 ARG TARGETVARIANT
 
 # PostGIS - Add required packages for runtime (see postgis dependencies)
-# hadolint ignore=DL3018, DL3003
+# hadolint ignore=DL3018
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     set -ex \
     && apk update \
@@ -64,7 +64,6 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
     && cd ~ \
     && apk del .fetch-deps .build-deps .community-build-deps \
     && rm -rf /build 
-
 
 # Labels
 LABEL \

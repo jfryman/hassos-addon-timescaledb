@@ -6,8 +6,11 @@ ARG GO_VERSION=1.22.1
 FROM golang:${GO_VERSION}-alpine AS timescaledb-tools
 
 ARG VERSION=latest
+ARG TARGETARCH
+ARG TARGETVARIANT
 
-ENV TOOLS_VERSION 0.8.1
+ENV TOOLS_VERSION=0.8.1
+# hadolint ignore=DL3018
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     apk update && apk add --no-cache \
         git \
@@ -17,3 +20,7 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
     && go install github.com/timescale/timescaledb-parallel-copy/cmd/timescaledb-parallel-copy@${VERSION} \
     && go install github.com/timescale/timescaledb-backup/cmd/ts-dump@${VERSION} \
     && go install github.com/timescale/timescaledb-backup/cmd/ts-restore@${VERSION}
+
+# Labels
+LABEL \
+    org.opencontainers.image.source="https://github.com/expaso/hassos-addon-timescaledb"
