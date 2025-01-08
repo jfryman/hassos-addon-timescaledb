@@ -189,10 +189,10 @@ else
 		exit 1
 	fi
 
-	# Check if we need to upgrade from 15 to 16
+	# Check if we need to upgrade from 15 to 17
 	if [[ $(< ${POSTGRES_DATA}/PG_VERSION) == "15" ]]; then
-		bashio::log.notice "A database upgrade is required from Postgres 15."
-		if upgradePostgreSQL 15 16; then
+		bashio::log.notice "A database upgrade is required from Postgres 15 -> 17"
+		if upgradePostgreSQL 15 17; then
 			bashio::log.notice "Upgrade was succesful"
 		else
 			bashio::log.error "Upgrade was not succesful."
@@ -202,7 +202,7 @@ else
 
 	# Check if we need to upgrade from 16 to 17
 	if [[ $(< ${POSTGRES_DATA}/PG_VERSION) == "16" ]]; then
-		bashio::log.notice "A database upgrade is required from Postgres 17."
+		bashio::log.notice "A database upgrade is required from Postgres 16 -> 17"
 		if upgradePostgreSQL 16 17; then
 			bashio::log.notice "Upgrade was succesful"
 		else
