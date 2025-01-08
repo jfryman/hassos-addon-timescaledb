@@ -68,7 +68,6 @@ Use the following URL to add this repository:
 https://github.com/expaso/hassos-addons
 ```
 
-
 Now scroll down and select the "TimeScaleDb" add-on.
 Press install to download the add-on and unpack it on your machine. This can take some time.
 
