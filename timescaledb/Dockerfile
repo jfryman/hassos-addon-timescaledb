@@ -16,6 +16,7 @@ FROM ghcr.io/expaso/timescaledb/dependency/pgagent-pg16:REL-4_2_2               
 FROM ghcr.io/expaso/timescaledb/dependency/pgagent-pg17:REL-4_2_2                      AS pgagent-pg17
 FROM ghcr.io/expaso/timescaledb/dependency/postgis-pg15:3.5.1                          AS postgis-pg15
 FROM ghcr.io/expaso/timescaledb/dependency/postgis-pg16:3.5.1                          AS postgis-pg16
+FROM ghcr.io/expaso/timescaledb/dependency/postgis-pg17:3.5.1                          AS postgis-pg17
 FROM ghcr.io/expaso/timescaledb/dependency/timescaledb-toolkit-pg16:1.19.0             AS timescaledb-toolkit-pg16
 FROM ghcr.io/expaso/timescaledb/dependency/timescaledb-toolkit-pg17:1.19.0             AS timescaledb-toolkit-pg17
 FROM ghcr.io/expaso/timescaledb/dependency/postgresql-extension-system-stat-pg16:3.2   AS system-stat-pg16
@@ -153,11 +154,20 @@ RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,targ
 RUN --mount=type=cache,id=apk-${TARGETARCH}-${TARGETVARIANT},sharing=locked,target=/var/cache/apk \
     set -ex \
     && apk add --repository https://dl-cdn.alpinelinux.org/alpine/v3.21/community --allow-untrusted \
-        postgis=3.5.0-r5 \
+        #postgis=3.5.0-r5 \
         gdal-driver-postgisraster \
     && \
     apk add --repository https://dl-cdn.alpinelinux.org/alpine/v3.21/main \
         libturbojpeg
+
+# Postgis + Postgis-Raster
+COPY --from=postgis-pg17 --link /usr/local/lib/postgresql/postgis* /usr/lib/postgresql17/
+
+COPY --from=postgis-pg17 --link /usr/local/lib/postgresql/bitcode/postgis-3/* /usr/lib/postgresql17/bitcode/postgis-3/
+COPY --from=postgis-pg17 --link /usr/local/lib/postgresql/bitcode/postgis_raster-3/* /usr/lib/postgresql17/bitcode/postgis_raster-3/
+
+COPY --from=postgis-pg17 --link /usr/local/share/postgresql/contrib/postgis* /usr/share/postgresql17/contrib/
+COPY --from=postgis-pg17 --link /usr/local/share/postgresql/extension/postgis* /usr/share/postgresql17/extension/
 
 # -----------------------------------------
 # Extension Timescale pg-15 (old)
