@@ -14,7 +14,7 @@ Here are the commands explained:
 
 - `inspect` build the addon for the current architecture (see PLATFORM in the file) tag it as `dev`, and run it locally with an interactive shell (/bin/ash).
 
-- `debug` build the addon for the current architecture (see PLATFORM in the file) tag it as `dev`, and run it locally with normal starup (not interactive).
+- `debug` build the addon for the current architecture (see PLATFORM in the file) tag it as `dev`, and run it locally with normal startup (not interactive).
 
 ## The manual way
 
