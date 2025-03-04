@@ -57,9 +57,15 @@ if bashio::var.true "${UPDATE}"; then
 		&& bashio::log.info "Try updating Timescale Extension for database: '${datname}'.." \
 		&& psql -X -U postgres -d ${datname} -c "ALTER EXTENSION timescaledb UPDATE;" || true >> /var/log/timescaledb.upgrade.log
 
+		# Update Postgis when needed
 		psql -X -U postgres -d ${datname} -c "select 1 from pg_extension where extname = 'postgis';" | grep -q 1 \
 		&& bashio::log.info "Try updating Postgis Extension for database: '${datname}'.." \
 		&& psql -X -U postgres -d ${datname} -c "SELECT PostGIS_Extensions_Upgrade();" || true >> /var/log/postgis.upgrade.log
+
+		# Update TimescaleDb Toolkit when needed
+		psql -X -U postgres -d ${datname} -c "select 1 from pg_extension where extname = 'timescaledb_toolkit';" | grep -q 1 \
+		&& bashio::log.info "Try updating TimescaleDb Toolkit Extension for database: '${datname}'.." \
+		&& psql -X -U postgres -d ${datname} -c "ALTER EXTENSION timescaledb_toolkit UPDATE;" || true >> /var/log/timescaledb_toolkit.upgrade.log
 	done
 fi
 

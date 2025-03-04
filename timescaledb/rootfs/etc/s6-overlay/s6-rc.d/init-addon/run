@@ -73,6 +73,12 @@ upgradeTimeScaleExtension () {
 			psql -U "postgres" homeassistant -c "drop view if exists public.chunks_ts"; \
 			(psql -X -U postgres -d ${datname} -c "ALTER EXTENSION timescaledb UPDATE;" || true)
 		)
+
+		psql -X -U postgres -d ${datname} -c "select 1 from pg_extension where extname = 'timescaledb_toolkit';" | grep -q 1 \
+		&& (
+			bashio::log.info "Try updating Timescale Toolkit for database: '${datname}'.."; \
+			(psql -X -U postgres -d ${datname} -c "ALTER EXTENSION timescaledb_toolkit UPDATE;" || true)
+		)
 	done
 
 	bashio::log.info "done"
