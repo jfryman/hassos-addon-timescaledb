@@ -21,6 +21,8 @@ FROM ghcr.io/expaso/timescaledb/dependency/timescaledb-toolkit-pg16:1.19.0      
 FROM ghcr.io/expaso/timescaledb/dependency/timescaledb-toolkit-pg17:1.19.0             AS timescaledb-toolkit-pg17
 FROM ghcr.io/expaso/timescaledb/dependency/postgresql-extension-system-stat-pg16:3.2   AS system-stat-pg16
 FROM ghcr.io/expaso/timescaledb/dependency/postgresql-extension-system-stat-pg17:3.2   AS system-stat-pg17
+FROM ghcr.io/expaso/timescaledb/dependency/pgvector-pg17:0.8.0                         AS pgvector-pg17
+
 
 ###########################################
 # Define base Image
@@ -243,6 +245,12 @@ COPY --from=system-stat-pg16 --link /usr/local/share/postgresql/extension/system
 # --------------------------------------------
 COPY --from=system-stat-pg17 --link /usr/local/lib/postgresql/system_stats*.so /usr/lib/postgresql17/
 COPY --from=system-stat-pg17 --link /usr/local/share/postgresql/extension/system_stats* /usr/share/postgresql17/extension/
+
+# --------------------------------------------
+# Extension pgVector pg-17 (new)
+# --------------------------------------------
+COPY --from=pgvector-pg17 --link /usr/local/lib/postgresql/pgvector*.so /usr/lib/postgresql17/
+COPY --from=pgvector-pg17 --link /usr/local/share/postgresql/extension/pgvector* /usr/share/postgresql17/extension/
 
 # --------------------------------------
 # Timescaledb Tools (alwasys latest)
