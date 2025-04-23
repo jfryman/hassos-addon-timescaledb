@@ -5,7 +5,6 @@
 - Install QUEMO Emulation: `docker run --privileged --rm tonistiigi/binfmt --install all`
 - Make sure a docker build builder is applied: `docker buildx create --use --name mybuilder && docker buildx inspect mybuilder --bootstrap`
 
-
 ## The easy way
 
 Run `./project.sh` in the root of the project to build / debug / run the addon during development.
