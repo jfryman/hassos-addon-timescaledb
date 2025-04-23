@@ -1,5 +1,11 @@
 # Local development
 
+## Make sure cross-platform builds are enabled
+
+- Install QUEMO Emulation: `docker run --privileged --rm tonistiigi/binfmt --install all`
+- Make sure a docker build builder is applied: `docker buildx create --use --name mybuilder && docker buildx inspect mybuilder --bootstrap`
+
+
 ## The easy way
 
 Run `./project.sh` in the root of the project to build / debug / run the addon during development.
@@ -33,7 +39,7 @@ ARG BUILD_ARCH=aarch64
 
 Hereafter, you can push the image to dockerhub using cmd of docker desktop for testing purposes.
 
-## Build using Home Asssitant Builder (https://github.com/home-assistant/builder)
+## Build using Home Assistant Builder (https://github.com/home-assistant/builder)
 
 To build the latest version using the HomeAssistant Addon Builder container, for `aarch64 architecture` for example, run:
 

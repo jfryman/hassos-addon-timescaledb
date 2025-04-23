@@ -249,8 +249,8 @@ COPY --from=system-stat-pg17 --link /usr/local/share/postgresql/extension/system
 # --------------------------------------------
 # Extension pgVector pg-17 (new)
 # --------------------------------------------
-COPY --from=pgvector-pg17 --link /usr/local/lib/postgresql/pgvector*.so /usr/lib/postgresql17/
-COPY --from=pgvector-pg17 --link /usr/local/share/postgresql/extension/pgvector* /usr/share/postgresql17/extension/
+COPY --from=pgvector-pg17 --link /usr/local/lib/postgresql/vector*.so /usr/lib/postgresql17/
+COPY --from=pgvector-pg17 --link /usr/local/share/postgresql/extension/vector* /usr/share/postgresql17/extension/
 
 # --------------------------------------
 # Timescaledb Tools (alwasys latest)

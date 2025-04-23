@@ -74,11 +74,20 @@ upgradeTimeScaleExtension () {
 			(psql -X -U postgres -d ${datname} -c "ALTER EXTENSION timescaledb UPDATE;" || true)
 		)
 
+		# Update Timescale Toolkit Extension when needed
 		psql -X -U postgres -d ${datname} -c "select 1 from pg_extension where extname = 'timescaledb_toolkit';" | grep -q 1 \
 		&& (
-			bashio::log.info "Try updating Timescale Toolkit for database: '${datname}'.."; \
+			bashio::log.info "Try updating Timescale Toolkit Extension for database: '${datname}'.."; \
 			(psql -X -U postgres -d ${datname} -c "ALTER EXTENSION timescaledb_toolkit UPDATE;" || true)
 		)
+
+		# Update Vector extension when needed
+		psql -X -U postgres -d ${datname} -c "select 1 from pg_extension where extname = 'vector';" | grep -q 1 \
+		&& (
+			bashio::log.info "Try updating Vector Extension for database: '${datname}'.."; \
+			(psql -X -U postgres -d ${datname} -c "ALTER EXTENSION vector UPDATE;" || true)
+		)
+
 	done
 
 	bashio::log.info "done"

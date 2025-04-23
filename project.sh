@@ -208,7 +208,7 @@ elif [ "$1" == "run-hassos" ]; then
     run_hassos
     exit 0
 
-# Builds a dev tagged image locally
+# Builds and runs a dev tagged image locally
 elif [ "$1" == "debug" ]; then
     build type=docker
     run_local

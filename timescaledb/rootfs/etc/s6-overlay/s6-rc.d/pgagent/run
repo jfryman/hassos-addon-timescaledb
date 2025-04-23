@@ -33,6 +33,7 @@ if bashio::var.true "${UPDATE}"; then
 	psql -U "postgres" -d "postgres" -X -c "ALTER EXTENSION pgagent UPDATE;" || true >> /var/log/pgagent.run.log
 fi
 
+# Enable pgAgent extension on postgres database
 if ! (psql -X -U postgres -d "postgres" -c "select 1 from pg_extension where extname = 'pgagent';" | grep -q 1); then
 	bashio::log.info "Enabling PgAgent Extension.."
 	psql -U "postgres" -d "postgres" -c "CREATE EXTENSION IF NOT EXISTS pgagent;" || true >> /var/log/pgagent.run.log

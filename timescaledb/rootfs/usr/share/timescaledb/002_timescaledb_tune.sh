@@ -9,7 +9,6 @@ if [ -n "${NO_TS_TUNE:-}" ]; then
     exit 0
 fi
 
-
 if [ -z "${POSTGRESQL_CONF_DIR:-}" ]; then
         POSTGRESQL_CONF_DIR=${PGDATA}
 fi
